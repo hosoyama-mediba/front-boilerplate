@@ -1,0 +1,9 @@
+{
+  "name": "db",
+  "connector": "mysql",
+  "host": "mysql",
+  "port": 3306,
+  "database": "front",
+  "user": "mysql",
+  "password": "mysql"
+}

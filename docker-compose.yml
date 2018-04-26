@@ -1,0 +1,58 @@
+version: '2'
+services:
+
+  api_node:
+    build: ./docker/node
+    container_name: api_node_container
+    hostname: api_node
+    volumes:
+      - "./api:/var/www/html"
+    working_dir: /var/www/html
+    command: [sh, -c, 'npm install && npm start']
+    links:
+      - mysql:mysql
+    ports:
+      - "3000:3000"
+
+  app_node:
+    build: ./docker/node
+    container_name: app_node_container
+    hostname: app_node
+    volumes:
+      - "./app/src:/var/www/html"
+    working_dir: /var/www/html
+    command: [sh, -c, 'npm install && npm run server:local']
+    links:
+      - mysql:mysql
+    ports:
+      - "3001:3001"
+
+  nginx:
+    build: ./docker/nginx
+    container_name: nginx_container
+    ports:
+      - "80:80"
+    depends_on:
+      - "app_node"
+    volumes:
+      - "./docker/nginx/conf.d:/etc/nginx/conf.d"
+      - "./docker/nginx/logs:/var/log/nginx"
+    links:
+      - mysql
+      - app_node
+
+  mysql:
+    build: ./docker/mysql
+    container_name: mysql_container
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: list
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/log:/var/log/mysql
+      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d
